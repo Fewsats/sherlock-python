@@ -1,0 +1,3 @@
+fastmcp
+sherlock-domains
+uvicorn

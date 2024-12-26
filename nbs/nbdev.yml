@@ -1,0 +1,9 @@
+project:
+  output-dir: _docs
+
+website:
+  title: "sherlock-domains"
+  site-url: "https://fewsats.github.io/sherlock-python"
+  description: "Sherlock Domains Agentic SDK for python"
+  repo-branch: main
+  repo-url: "https://github.com/fewsats/sherlock-python"
