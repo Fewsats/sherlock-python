@@ -1,4 +1,4 @@
-# FastMCP example for stock.l402.org
+# FastMCP server for Sherlock Domains
 
 ## Usage
 
