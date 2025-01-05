@@ -1,11 +1,15 @@
 import openai
 from cosette import Chat, Client as CosetteClient
 from sherlock.core import Sherlock
+import os
 
-MODEL = 'gpt-4o-mini'
-API_KEY = ''
-SHERLOCK_AGENT_PRIVATE_KEY_HEX = ''
-DEBUG=True
+MODEL = os.getenv('MODEL', 'gpt-4o-mini')
+API_KEY = os.getenv('OPENAI_API_KEY')
+SHERLOCK_AGENT_PRIVATE_KEY_HEX = os.getenv('SHERLOCK_AGENT_PRIVATE_KEY_HEX')
+DEBUG=os.getenv('DEBUG', True)
+
+if not API_KEY:
+    raise ValueError("OPENAI_API_KEY environment variable is not set")
 
 def main():
     # Cossete expects a client that implements the OpenAI API
@@ -28,6 +32,8 @@ def main():
     - Prices are always in the minimum unit of the currency. For example for USD they are in cents. An offer of {price:1199 currency: USD} is $11.99.
     - For domains that you are own you are usually interested in domain_id, name, expiration date, and auto-renewal status.
     - All the DNS endpoints use the domain_id to identify the domain.
+    - Before proceeding with a purchase, ask the user if they want the domain at that price.
+    - By default the credit card payment method is used, do not ask for the payment method.
     '''
     chat = Chat(cli=cossete_client, sp=sp, tools=sherlock.as_tools())
 
