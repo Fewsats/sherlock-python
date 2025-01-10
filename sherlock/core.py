@@ -231,7 +231,7 @@ def _set_contact_information(self: Sherlock,
     Raises:
         ValueError: If any required field is empty
     """
-    return self.set_contact(cfn, cln, cem, cadd, cct, cst, cpc, ccn)
+    return self.set_contact_information(cfn, cln, cem, cadd, cct, cst, cpc, ccn)
 
 
 @patch
@@ -241,7 +241,7 @@ def _get_contact_information(self: Sherlock):
     Returns:
         Contact: Contact information object
     """
-    return self.get_contact()
+    return self.get_contact_information()
 
 
 # %% ../nbs/00_core.ipynb 47
@@ -345,7 +345,7 @@ def purchase_domain(self: Sherlock,
     """
     c = Contact(**self.get_contact_information())
     if not c or not c.is_valid(): raise ValueError("Contact information is required")
-    offers = self.get_purchase_offers(sid, domain, c.first_name, c.last_name, c.email, c.address, c.city, c.state, c.postal_code, c.country)
+    offers = self.get_purchase_offers(sid, domain)
     return self.get_payment_request(offers['payment_request_url'], offers['offers'][0]['id'], payment_method, offers['payment_context_token'])
 
 
