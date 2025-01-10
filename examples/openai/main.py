@@ -6,10 +6,11 @@ import os
 MODEL = os.getenv('MODEL', 'gpt-4o-mini')
 API_KEY = os.getenv('OPENAI_API_KEY')
 SHERLOCK_AGENT_PRIVATE_KEY_HEX = os.getenv('SHERLOCK_AGENT_PRIVATE_KEY_HEX')
-DEBUG=os.getenv('DEBUG', True)
+DEBUG = os.getenv('DEBUG', False)
 
 if not API_KEY:
     raise ValueError("OPENAI_API_KEY environment variable is not set")
+
 
 def main():
     # Cossete expects a client that implements the OpenAI API
@@ -63,6 +64,7 @@ def main():
             break
         except Exception as e:
             print(f"\nError: {e}")
+
 
 if __name__ == '__main__':
     main()
