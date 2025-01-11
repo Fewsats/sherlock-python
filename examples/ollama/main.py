@@ -1,17 +1,20 @@
 import openai
-from cosette import Chat, Client as CosetteClient
+from cosette import Chat, Client as CosetteClient, contents
 from sherlock.core import Sherlock
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 MODEL = 'llama3.2'
 INFERENCE_HOST = 'http://localhost:11434/v1'
-API_KEY = 'YOUR_API_KEY'
-SHERLOCK_AGENT_PRIVATE_KEY_HEX = ''
+SHERLOCK_AGENT_PRIVATE_KEY_HEX = os.getenv('SHERLOCK_AGENT_PRIVATE_KEY_HEX')
 DEBUG = True
 
 
 def main():
     # Cossete expects a client that implements the OpenAI API
-    cli = openai.OpenAI(base_url=INFERENCE_HOST, api_key=API_KEY)
+    cli = openai.OpenAI(base_url=INFERENCE_HOST, api_key='not-required')
 
     # Private key for authenticating with sherlock
     # If you don't provide one, authenticated calls will not be available
@@ -43,7 +46,7 @@ def main():
                 break
             if user_input:
                 response = chat.toolloop(user_input, trace_func=trace_func)
-                print("\nAssistant:", response.choices[0].message.content)
+                print("\nAssistant:", contents(response))
         except KeyboardInterrupt:
             print("\nGoodbye!")
             break
