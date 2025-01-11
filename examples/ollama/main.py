@@ -1,3 +1,4 @@
+import os
 import openai
 from cosette import Chat, Client as CosetteClient, contents
 from sherlock.core import Sherlock
@@ -6,10 +7,11 @@ import os
 
 load_dotenv()
 
-MODEL = 'llama3.2'
-INFERENCE_HOST = 'http://localhost:11434/v1'
+MODEL = os.getenv('MODEL', 'llama3.2')
+INFERENCE_HOST = os.getenv('INFERENCE_HOST', 'http://localhost:11434/v1')
+API_KEY = os.getenv('API_KEY', 'PLACEHOLDER_API_KEY')
 SHERLOCK_AGENT_PRIVATE_KEY_HEX = os.getenv('SHERLOCK_AGENT_PRIVATE_KEY_HEX')
-DEBUG = True
+DEBUG = os.getenv('DEBUG', False)
 
 
 def main():
