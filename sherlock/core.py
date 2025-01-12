@@ -6,55 +6,33 @@
 __all__ = ['API_URL', 'me_endpoint', 'get_offers_endpoint', 'Sherlock', 'Contact', 'main']
 
 # %% ../nbs/00_core.ipynb 3
+import os
 from typing import Dict, Any
 import httpx, json, time
-from cryptography.hazmat.primitives.asymmetric import ed25519
 import fastcore.utils as fc
 from fastcore.test import *
 from fastcore.script import *
 from fastcore.utils import first, last, L, patch
 from fastcore.all import asdict
-from .crypto import *
+from cryptography.hazmat.primitives.asymmetric import ed25519
 
-# %% ../nbs/00_core.ipynb 4
-API_URL = "https://api.sherlockdomains.com"
 
-# %% ../nbs/00_core.ipynb 9
+from .auth import authenticate
+from .config import get_cfg, save_cfg
+from .crypto import from_pk_hex, generate_keys, priv_key_hex
+
+
+# %% ../nbs/00_core.ipynb 5
+API_URL = os.getenv('SHERLOCK_API_URL', "https://api.sherlockdomains.com")
+
+# %% ../nbs/00_core.ipynb 6
 def _handle_response(r):
     "Process response: raise for status and return json if possible. 402 status is expected for payment required."
     if r.status_code != 402: r.raise_for_status()
     try: return r.json()
     except: return r
 
-def _get_challenge(pub_key: str): # public key
-    "Get authentication challenge for a public key"
-    r = httpx.post(f"{API_URL}/api/v0/auth/challenge", json={"public_key": pub_key})
-    return _handle_response(r)['challenge']
-
-
-# %% ../nbs/00_core.ipynb 13
-def _sign_challenge(pk: ed25519.Ed25519PrivateKey, 
-                   c: str): # challenge
-    "Sign a challenge with a private key"
-    return pk.sign(bytes.fromhex(c)).hex()
-
-# %% ../nbs/00_core.ipynb 17
-def _submit_challenge(pub: str, # public key
-          c: str, # challenge
-          sig: str): # signature
-    "Submit a challenge and signature to the server to get access and refresh tokens"
-    r = httpx.post(f"{API_URL}/api/v0/auth/login", json={
-        "public_key": pub,
-        "challenge": c,
-        "signature": sig
-    })
-    r = _handle_response(r)
-    return r['access'], r['refresh']
-
-# %% ../nbs/00_core.ipynb 21
-from .config import *
-
-# %% ../nbs/00_core.ipynb 22
+# %% ../nbs/00_core.ipynb 8
 class Sherlock:
     "Sherlock client class to interact with the Sherlock API."
     def __init__(self,
@@ -74,42 +52,35 @@ class Sherlock:
         self.atok, self.rtok = self._authenticate()
         
     def _authenticate(self):
-        "Authenticate with the server with a public key and private key"
-        c = _get_challenge(self.pub)
-        sig = _sign_challenge(self.pk, c)
-        return _submit_challenge(self.pub, c, sig)
+        "Authenticate with the server"
+        return authenticate(self.pub, self.pk, API_URL)
     
     def __str__(self): return f"Sherlock(pubkey={self.pub})"
     __repr__ = __str__
 
-# %% ../nbs/00_core.ipynb 27
+# %% ../nbs/00_core.ipynb 13
 me_endpoint = f"{API_URL}/api/v0/auth/me"
 
-# %% ../nbs/00_core.ipynb 28
+# %% ../nbs/00_core.ipynb 14
 def _mk_headers(tok): return {"Authorization": f"Bearer {tok}"}
 
-# %% ../nbs/00_core.ipynb 30
+# %% ../nbs/00_core.ipynb 16
 @patch
 def me(self: Sherlock):
     "Get authenticated user information"
     r = httpx.get(me_endpoint, headers=_mk_headers(self.atok))
     return _handle_response(r)
 
-# %% ../nbs/00_core.ipynb 31
+# %% ../nbs/00_core.ipynb 17
 @patch
 def _me(self: Sherlock):
-    """Makes an authenticated request to verify the current authentication status.
-
-    Returns:
-        dict: Authentication status containing:
-            - logged_in (bool): Whether the user is authenticated
-
-    Raises:
-        HTTPError: If the request fails or authentication is invalid
+    """
+    Makes an authenticated request to verify the current authentication status and retrieve basic user details.
+    Returns user information including logged_in status, email, and the public key being used for authentication.
     """
     return self.me()
 
-# %% ../nbs/00_core.ipynb 35
+# %% ../nbs/00_core.ipynb 21
 @patch
 def search(self: Sherlock,
                   q: str): # query
@@ -117,35 +88,29 @@ def search(self: Sherlock,
     r = httpx.get(f"{API_URL}/api/v0/domains/search", params={"query": q})
     return _handle_response(r)
 
-# %% ../nbs/00_core.ipynb 36
+# %% ../nbs/00_core.ipynb 22
 @patch
 def _search(self: Sherlock,
                   q: str):
-    """Search for available domains matching the query.
-    
-    Args:
-        q (str): Query string to search for domains (can be a full domain name or partial text)
-    
-    Returns:
-        dict: Search results containing:
-            - id (str): Unique search ID used for subsequent purchase requests
-            - created_at (str): ISO timestamp of when the search was performed
-            - available (list): List of available domains, each containing:
-                - name (str): Full domain name
-                - tld (str): Top-level domain
-                - tags (list): Domain categories or features
-                - price (int): Price in USD cents
-                - currency (str): Currency code (e.g., 'USD')
-                - available (bool): Domain availability status
-            - unavailable (list): List of unavailable domain names
-    
-    Raises:
-        HTTPError: If the search request fails
-        ValueError: If query contains invalid characters
     """
+    Search for available domains matching the query.
+    Returns search results with available/unavailable domains, their prices in USD cents, and a search ID needed for purchase requests.
+    The query can be a full domain name with or without the TLD but not subdomains or text.
+
+    Valid queries: 
+        - "example"
+        - "example.com" 
+        - "my-domain"
+    
+    Invalid queries:
+        - "www.example.com"  # no subdomains
+        - "this is a search" # no spaces
+        - "sub.domain.com"   # no subdomains
+    """
+
     return self.search(q)
 
-# %% ../nbs/00_core.ipynb 39
+# %% ../nbs/00_core.ipynb 25
 class Contact(fc.BasicRepr):
     "Contact information for a domain purchase"
     first_name: str
@@ -162,7 +127,7 @@ class Contact(fc.BasicRepr):
     def from_dict(d): return Contact(**d) if d else None
 
 
-# %% ../nbs/00_core.ipynb 40
+# %% ../nbs/00_core.ipynb 26
 @patch
 def is_valid(self: Contact):
     "Check if the contact information is valid"
@@ -205,100 +170,71 @@ def get_contact_information(self: Sherlock):
     return _handle_response(r)
    
 
-# %% ../nbs/00_core.ipynb 41
+# %% ../nbs/00_core.ipynb 27
 @patch
 def _set_contact_information(self: Sherlock,
-                      cfn: str = '', # contact first name
-                      cln: str = '', # contact last name
-                      cem: str = '', # contact email
-                      cadd: str = '', # contact address
-                      cct: str = '', # contact city
-                      cst: str = '', # contact state
-                      cpc: str = '', # contact postal code
-                      ccn: str = ''): # contact country
-    """Set the contact information that will be used for domain purchases and ICANN registration
-    
-    Args:
-        cfn (str): First name
-        cln (str): Last name
-        cem (str): Email address
-        cadd (str): Street address
-        cct (str): City
-        cst (str): State/Province (e.g., 'CA', 'AZ', 'NY', 'BC', 'Madrid', etc.)
-        cpc (str): Postal code
-        ccn (str): Country code (e.g., 'US', 'ES', 'FR', etc.)
-    
-    Raises:
-        ValueError: If any required field is empty
+                      first_name: str = '',
+                      last_name: str = '',
+                      email: str = '',
+                      address: str = '',
+                      city: str = '',
+                      state: str = '',
+                      postal_code: str = '',
+                      country: str = ''):
     """
-    return self.set_contact_information(cfn, cln, cem, cadd, cct, cst, cpc, ccn)
+    Set the contact information that will be used for domain purchases and ICANN registration.
+    Contact information must be set before attempting any domain purchases.
+
+    All fields are required:
+        first_name: First name
+        last_name: Last name
+        email: Email address
+        address: Street address
+        city: City
+        state: Two-letter state code for US/Canada (e.g., 'CA', 'NY') or province name (e.g., 'Madrid')
+        postal_code: Postal code
+        country: Two-letter country code ('US', 'ES', 'FR')
+    """
+    return self.set_contact_information(first_name, last_name, email, address, city, state, postal_code, country)
 
 
 @patch
 def _get_contact_information(self: Sherlock):
-    """Retrieve the currently configured contact information that will be used for domain purchases and ICANN registration
-    
-    Returns:
-        Contact: Contact information object
+    """
+    Retrieve the currently configured contact information that will be used for domain purchases and ICANN registration
     """
     return self.get_contact_information()
 
 
-# %% ../nbs/00_core.ipynb 47
+# %% ../nbs/00_core.ipynb 33
 get_offers_endpoint = f"{API_URL}/api/v0/domains/purchase"
 
-# %% ../nbs/00_core.ipynb 48
-def _get_offers_data(domain: str, # domain
+# %% ../nbs/00_core.ipynb 34
+def _get_offers_payload(domain: str, # domain
                    contact: Contact, # contact
                    sid: str): # search id
     "Make a purchase payload"
     return {"domain": domain, "contact_information": contact.asdict(), "search_id": sid}
 
-# %% ../nbs/00_core.ipynb 51
+# %% ../nbs/00_core.ipynb 37
 @patch
 def get_purchase_offers(self: Sherlock,
                       sid: str, # search id
-                      domain: str): # domain
-    """Request purchase offers for a domain.
-    
-    Args:
-        sid (str): Search ID from previous search request
-        domain (str): Domain name to purchase
-
-       
-    
-    Returns:
-        dict: L402  payment offers containing:
-            - version (str): API version
-            - payment_request_url (str): URL for payment processing
-            - payment_context_token (str): Token for payment context
-            - offers (list): List of payment offers, each containing:
-                - id (str): Offer ID
-                - title (str): Domain name
-                - description (str): Purchase description
-                - type (str): Payment type (e.g., 'one-time')
-                - amount (int): Price in cents
-                - currency (str): Currency code
-                - payment_methods (list): Available payment methods
-    
-    Raises:
-        ValueError: If contact information is missing
-        HTTPError: If request fails
-    """
-    c = Contact(**self.get_contact_information())
+                      domain: str, # domain
+                      c: Contact): # contact information
+    "Request available payment options for a domain."
     if not c or not c.is_valid(): raise ValueError("Contact information is required")
-
-    r = httpx.post(get_offers_endpoint, json=_get_offers_data(domain, c, sid), headers=_mk_headers(self.atok))
+    r = httpx.post(get_offers_endpoint, json=_get_offers_payload(domain, c, sid), headers=_mk_headers(self.atok))
     return _handle_response(r)
 
-# %% ../nbs/00_core.ipynb 56
+# %% ../nbs/00_core.ipynb 42
 @patch
-def get_payment_request(self: Sherlock,
+def get_payment_details(self: Sherlock,
                     prurl: str, # payment request url
                     oid: str, # offer id
                     pm: str, # payment method
                     pct: str): # payment context token
-    """Get payment request for an offer. `offer_id` and `payment_context_token` are returned by `get_purchase_offers`. The supported payment methods are currently 'credit_card' and 'lightning'."""
+    "Get payment details for an offer."
     data = {
         "offer_id": oid,
         "payment_method": pm,
@@ -308,78 +244,66 @@ def get_payment_request(self: Sherlock,
     return _handle_response(r)
 
 
-# %% ../nbs/00_core.ipynb 58
+# %% ../nbs/00_core.ipynb 44
+@patch
+def purchase_domain(self: Sherlock,
+                    sid: str, # search id
+                    domain: str, # domain
+                    payment_method: str = 'credit_card', # payment method {'credit_card', 'lightning'}
+                    contact: Contact = None): # contact information
+    "Request payment information for purchasing a domain. Returns the details needed to complete the payment (like a checkout URL)."
+    if not contact: contact = Contact(**self.get_contact_information())
+    if not contact.is_valid(): raise ValueError("Contact information is required")
+    offers = self.get_purchase_offers(sid, domain, contact)
+    return self.get_payment_details(offers['payment_request_url'], offers['offers'][0]['id'], payment_method, offers['payment_context_token'])
+
+
 @patch
 def _purchase_domain(self: Sherlock,
                     sid: str, # search id
                     domain: str, # domain
                     payment_method: str = 'credit_card'): # payment method {'credit_card', 'lightning'}
     """
-    Purchase a domain. This method won't charge your account, it will return the payment information for purchasing a domain.
-    For credit card payments it returns a checkout URL. For Lightning Network payments it returns an invoice.
+    Purchase a domain. This method won't charge your account, it will return the payment information needed to complete the purchase.
+    Contact information must be set before calling this method.
 
-    NOTE: Before calling this method the contact information needs to be set for the Sherlock object.
-
-    Args:
-        sid (str): Search ID from previous search request
-        domain (str): Domain name to purchase
-        payment_method (str): Payment method {'credit_card', 'lightning'}
-    
-    Returns:
-        dict:
-            - payment_method (dict): 
-                - checkout_url (str): URL for credit card payment processing
-                - lightning_invoice (str): Lightning Network invoice
-            - expires_at (str): ISO timestamp of when the payment expires
+    sid: Search ID from a previous search request
+    domain: Domain name to purchase
+    payment_method: Payment method to use {'credit_card', 'lightning'}
     """
-    return self.purchase_domain(sid, domain, payment_method)
-
-@patch
-def purchase_domain(self: Sherlock,
-                    sid: str, # search id
-                    domain: str, # domain
-                    payment_method: str = 'credit_card'): # payment method {'credit_card', 'lightning'}
-    """
-    Purchase a domain, it will return the payment information for purchasing a domain.
-    This method won't charge your account, the payment needs to be processed outband (checkout url, lightning invoice, etc.).
-    """
-    c = Contact(**self.get_contact_information())
-    if not c or not c.is_valid(): raise ValueError("Contact information is required")
-    offers = self.get_purchase_offers(sid, domain)
-    return self.get_payment_request(offers['payment_request_url'], offers['offers'][0]['id'], payment_method, offers['payment_context_token'])
+    contact = Contact(**self.get_contact_information())
+    if not contact or not contact.is_valid(): raise ValueError("Contact information is required")
+    return self.purchase_domain(sid, domain, payment_method, contact)
 
 
-# %% ../nbs/00_core.ipynb 60
+# %% ../nbs/00_core.ipynb 46
 @patch
 def domains(self:Sherlock):
     "List of domains owned by the authenticated user"
     r = httpx.get(f"{API_URL}/api/v0/domains/domains", headers=_mk_headers(self.atok))
     return _handle_response(r)
 
-# %% ../nbs/00_core.ipynb 61
+# %% ../nbs/00_core.ipynb 47
 @patch
 def _domains(self:Sherlock):
-    """List domains owned by the authenticated user.
+    """
+    List domains owned by the authenticated user.
     
-    Returns:
-        list: List of domain objects containing:
-            - id (str): Unique domain identifier (domain_id in other methods)
-            - domain_name (str): The registered domain name
-            - created_at (str): ISO timestamp of domain creation
-            - expires_at (str): ISO timestamp of domain expiration
-            - auto_renew (bool): Whether domain is set to auto-renew
-            - locked (bool): Domain transfer lock status
-            - private (bool): WHOIS privacy protection status
-            - nameservers (list): List of nameserver hostnames
-            - status (str): Domain status (e.g. 'active')
-    
-    Raises:
-        HTTPError: If the request fails or authentication is invalid
+    Each domain object contains:
+        id (str): Unique domain identifier (domain_id in other methods)
+        domain_name (str): The registered domain name
+        created_at (str): ISO timestamp of domain creation
+        expires_at (str): ISO timestamp of domain expiration
+        auto_renew (bool): Whether domain is set to auto-renew
+        locked (bool): Domain transfer lock status
+        private (bool): WHOIS privacy protection status
+        nameservers (list): List of nameserver hostnames
+        status (str): Domain status (e.g. 'active')
     """
     return self.domains()
 
 
-# %% ../nbs/00_core.ipynb 63
+# %% ../nbs/00_core.ipynb 49
 @patch
 def dns_records(self:Sherlock,
                 domain_id: str): # domain id
@@ -388,27 +312,25 @@ def dns_records(self:Sherlock,
                  headers=_mk_headers(self.atok))
     return _handle_response(r)
 
-# %% ../nbs/00_core.ipynb 64
+# %% ../nbs/00_core.ipynb 50
 @patch
 def _dns_records(self:Sherlock,
                 domain_id: str):
-    """Get DNS records for a domain.
+    """
+    Get DNS records for a domain.
 
-    Args
-        domain_id: str - domain uuid (e.g: 'd1234567-89ab-cdef-0123-456789abcdef')
+    domain_id: Domain UUID (e.g: 'd1234567-89ab-cdef-0123-456789abcdef')
     
-    Returns:
-        str: Domain name
-        list: List of DNS records with:
-            - id (str): Unique record identifier
-            - type (str): DNS record type (e.g. 'A', 'CNAME', 'MX', 'TXT')
-            - name (str): DNS record name
-            - value (str): DNS record value
-            - ttl (int): Time to live in seconds
+    Each DNS record contains:
+        id (str): Unique record identifier
+        type (str): DNS record type (e.g. 'A', 'CNAME', 'MX', 'TXT')
+        name (str): DNS record name
+        value (str): DNS record value
+        ttl (int): Time to live in seconds
     """
     return self.dns_records(domain_id)
 
-# %% ../nbs/00_core.ipynb 66
+# %% ../nbs/00_core.ipynb 52
 @patch
 def create_dns(self:Sherlock,
                domain_id: str, # domain id
@@ -422,7 +344,7 @@ def create_dns(self:Sherlock,
                   headers=_mk_headers(self.atok), json=data)
     return _handle_response(r)
 
-# %% ../nbs/00_core.ipynb 68
+# %% ../nbs/00_core.ipynb 54
 @patch
 def _create_dns_record(self:Sherlock,
                 domain_id: str, # domain id
@@ -430,31 +352,19 @@ def _create_dns_record(self:Sherlock,
                 name: str = "test", # name
                 value: str = "test-1", # value
                 ttl: int = 3600): # ttl
-    """Create a new DNS record for a domain.
+    """
+    Create a new DNS record for a domain.
     
-    Args:
-        domain_id (str): Domain UUID (e.g., 'd1234567-89ab-cdef-0123-456789abcdef')
-        type (str): DNS record type ('A', 'AAAA', 'CNAME', 'MX', 'TXT', etc.)
-        name (str): Subdomain or record name (e.g., 'www' creates www.yourdomain.com)
-        value (str): Record value (e.g., IP address for A records, domain for CNAME)
-        ttl (int): Time To Live in seconds (default: 3600)
-    
-    Returns:
-        dict: Created DNS record containing:
-            - records (list): List with the created record containing:
-                - id (str): Unique record identifier
-                - type (str): DNS record type
-                - name (str): Record name
-                - value (str): Record value
-                - ttl (int): Time to live in seconds
-    
-    Raises:
-        HTTPError: If the request fails or authentication is invalid
+    domain_id: Domain UUID (e.g., 'd1234567-89ab-cdef-0123-456789abcdef')
+    type: DNS record type ('A', 'AAAA', 'CNAME', 'MX', 'TXT', etc.)
+    name: Subdomain or record name (e.g., 'www' creates www.yourdomain.com)
+    value: Record value (e.g., IP address for A records, domain for CNAME)
+    ttl: Time To Live in seconds (default: 3600)
     """
     return self.create_dns(domain_id, type, name, value, ttl)
 
 
-# %% ../nbs/00_core.ipynb 70
+# %% ../nbs/00_core.ipynb 56
 @patch
 def update_dns(self:Sherlock,
                domain_id: str, # domain id
@@ -470,7 +380,7 @@ def update_dns(self:Sherlock,
                    headers=_mk_headers(self.atok), json=data)
     return _handle_response(r)
 
-# %% ../nbs/00_core.ipynb 72
+# %% ../nbs/00_core.ipynb 58
 @patch
 def _update_dns_record(self:Sherlock,
                 domain_id: str, # domain id
@@ -479,34 +389,22 @@ def _update_dns_record(self:Sherlock,
                 name: str = "test-2", # name
                 value: str = "test-2", # value
                 ttl: int = 3600): # ttl
-    """Update an existing DNS record for a domain.
+    """
+    Update an existing DNS record for a domain.
 
     NOTE: Updating a record will change its record id.
     
-    Args:
-        domain_id (str): Domain UUID (e.g., 'd1234567-89ab-cdef-0123-456789abcdef')
-        record_id (str): DNS record UUID to update
-        type (str): DNS record type ('A', 'AAAA', 'CNAME', 'MX', 'TXT', etc.)
-        name (str): Subdomain or record name (e.g., 'www' for www.yourdomain.com)
-        value (str): New record value (e.g., IP address for A records)
-        ttl (int): Time To Live in seconds (default: 3600)
-    
-    Returns:
-        dict: Updated DNS record containing:
-            - records (list): List with the modified record containing:
-                - id (str): Record identifier
-                - type (str): DNS record type
-                - name (str): Record name
-                - value (str): Updated value
-                - ttl (int): Time to live in seconds
-    
-    Raises:
-        HTTPError: If the request fails, record doesn't exist, or authentication is invalid
+    domain_id: Domain UUID (e.g., 'd1234567-89ab-cdef-0123-456789abcdef')
+    record_id: DNS record UUID to update
+    type: DNS record type ('A', 'AAAA', 'CNAME', 'MX', 'TXT', etc.)
+    name: Subdomain or record name (e.g., 'www' for www.yourdomain.com)
+    value: New record value (e.g., IP address for A records)
+    ttl: Time To Live in seconds (default: 3600)
     """
     return self.update_dns(domain_id, record_id, type, name, value, ttl)
 
 
-# %% ../nbs/00_core.ipynb 73
+# %% ../nbs/00_core.ipynb 59
 @patch
 def delete_dns(self:Sherlock,
                domain_id: str, # domain id
@@ -516,24 +414,21 @@ def delete_dns(self:Sherlock,
                     headers=_mk_headers(self.atok))
     return _handle_response(r)
 
-# %% ../nbs/00_core.ipynb 75
+# %% ../nbs/00_core.ipynb 61
 @patch
 def _delete_dns_record(self:Sherlock,
                 domain_id: str, # domain id
                 record_id: str): # record id
-    """Delete a DNS record for a domain.
+    """
+    Delete a DNS record for a domain.
     
-    Args:
-        domain_id (str): Domain UUID (e.g., 'd1234567-89ab-cdef-0123-456789abcdef')
-        record_id (str): DNS record ID to delete
-    
-    Returns:
-        dict: Empty response
+    domain_id: Domain UUID (e.g., 'd1234567-89ab-cdef-0123-456789abcdef')
+    record_id: DNS record ID to delete
     """
     return self.delete_dns(domain_id, record_id)
 
 
-# %% ../nbs/00_core.ipynb 77
+# %% ../nbs/00_core.ipynb 63
 @patch
 def as_tools(self:Sherlock):
     "Return the Sherlock class as a list of tools ready for agents to use"
@@ -550,11 +445,11 @@ def as_tools(self:Sherlock):
         self._delete_dns_record,
     ])
 
-# %% ../nbs/00_core.ipynb 80
+# %% ../nbs/00_core.ipynb 66
 from inspect import signature, Parameter
 import argparse
 
-# %% ../nbs/00_core.ipynb 81
+# %% ../nbs/00_core.ipynb 67
 @patch
 def as_cli(self:Sherlock):
     "Return the Sherlock class as a list of tools ready for agents to use"
@@ -562,7 +457,7 @@ def as_cli(self:Sherlock):
         self.me,
         self.set_contact_information,
         self.get_contact_information,
-        self.search, 
+        self.search,
         self.purchase_domain,
         self.domains,
         self.dns_records,
@@ -571,7 +466,7 @@ def as_cli(self:Sherlock):
         self.delete_dns,
     ])
 
-# %% ../nbs/00_core.ipynb 83
+# %% ../nbs/00_core.ipynb 69
 def main():
     "CLI interface for Sherlock"
     parser = argparse.ArgumentParser()
