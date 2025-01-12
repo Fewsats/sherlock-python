@@ -4,4 +4,5 @@ website:
       - index.ipynb
       - 00_core.ipynb
       - 01_crypto.ipynb
-      - 02_config.ipynb
+      - 02_auth.ipynb
+      - 03_config.ipynb
