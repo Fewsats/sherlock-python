@@ -1,3 +1,30 @@
 [build-system]
 requires = ["setuptools>=64.0"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "sherlock-domains"
+version = "0.1.0"
+description = "Sherlock Domains Agentic SDK for python"
+readme = "README.md"
+requires-python = ">=3.10"
+license = {text = "Apache-2.0"}
+authors = [
+    {name = "Jordi Montes", email = "jordi@fewsats.com"},
+    {name = "Pol Alvarez", email = "pol@fewsats.com"}
+]
+dependencies = [
+    "fastcore",
+    "httpx",
+    "cryptography"
+]
+
+[project.optional-dependencies]
+dev = [
+    "nbdev",
+    "claudette",
+    "fewsats",
+    "twine",
+    "python-dotenv",
+    "streamlit"
+]
