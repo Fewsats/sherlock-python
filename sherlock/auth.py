@@ -45,10 +45,10 @@ def _submit_challenge(pub: str, # public key
     return r['access'], r['refresh']
 
 # %% ../nbs/02_auth.ipynb 19
-def authenticate(pub: ed25519.Ed25519PublicKey, # public key
-                 priv: ed25519.Ed25519PrivateKey, # private key
+def authenticate(priv: ed25519.Ed25519PrivateKey, # private key
                  base_url: str = "https://api.sherlockdomains.com"): # base url
     "Authenticate with the server and return access and refresh tokens"
+    pub = priv.public_key().public_bytes_raw().hex()
     c = _get_challenge(pub, base_url)
     sig = _sign_challenge(priv, c)
     return _submit_challenge(pub, c, sig, base_url)

@@ -53,7 +53,7 @@ class Sherlock:
         
     def _authenticate(self):
         "Authenticate with the server"
-        return authenticate(self.pub, self.pk, API_URL)
+        return authenticate(self.pk, API_URL)
     
     def __str__(self): return f"Sherlock(pubkey={self.pub})"
     __repr__ = __str__
