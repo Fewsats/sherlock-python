@@ -451,6 +451,43 @@ import argparse
 
 # %% ../nbs/00_core.ipynb 67
 @patch
+def cli_docs(self:Sherlock):
+    "Generate comprehensive CLI documentation in LLM-friendly format"
+    import io, sys
+    from contextlib import redirect_stdout
+    
+    # Create string buffer to capture output
+    buf = io.StringIO()
+    with redirect_stdout(buf):
+        # First get main help
+        parser = argparse.ArgumentParser()
+        sub = parser.add_subparsers(dest='cmd')
+        
+        # Add all commands
+        parsers = {}
+        for m in self.as_cli():
+            p = sub.add_parser(m.__name__, help=m.__doc__)
+            parsers[m.__name__] = p
+            for name,param in signature(m).parameters.items():
+                if name != 'self':
+                    required = param.default == param.empty
+                    p.add_argument(f'--{name}', required=required)
+        
+        # Print main help
+        print("=== Main Help ===")
+        parser.print_help()
+        print()
+        
+        # Print help for each command
+        for cmd_name, p in parsers.items():
+            print(f"=== {cmd_name} ===")
+            p.print_help()
+            print()
+    
+    return buf.getvalue()
+
+# %% ../nbs/00_core.ipynb 68
+@patch
 def as_cli(self:Sherlock):
     "Return the Sherlock class as a list of tools ready for agents to use"
     return L([
@@ -464,9 +501,10 @@ def as_cli(self:Sherlock):
         self.create_dns,
         self.update_dns,
         self.delete_dns,
+        self.cli_docs
     ])
 
-# %% ../nbs/00_core.ipynb 69
+# %% ../nbs/00_core.ipynb 70
 def main():
     "CLI interface for Sherlock"
     parser = argparse.ArgumentParser()
