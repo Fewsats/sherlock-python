@@ -452,7 +452,7 @@ import argparse
 # %% ../nbs/00_core.ipynb 67
 @patch
 def cli_docs(self:Sherlock):
-    "Generate comprehensive CLI documentation in LLM-friendly format"
+    "Generate comprehensive CLI documentation in markdown format"
     import io, sys
     from contextlib import redirect_stdout
     
@@ -474,15 +474,19 @@ def cli_docs(self:Sherlock):
                     p.add_argument(f'--{name}', required=required)
         
         # Print main help
-        print("=== Main Help ===")
+        print("# Sherlock CLI Documentation\n")
+        print("## Overview\n")
+        print("```bash")
         parser.print_help()
-        print()
+        print("```\n")
         
         # Print help for each command
+        print("## Commands\n")
         for cmd_name, p in parsers.items():
-            print(f"=== {cmd_name} ===")
+            print(f"### `{cmd_name}`\n")
+            print("```bash")
             p.print_help()
-            print()
+            print("```\n")
     
     return buf.getvalue()
 
