@@ -40,8 +40,8 @@ sr['unavailable'] = sr['unavailable'][:1]
 sr
 ```
 
-    {'id': 'c004a96f-7c8f-4377-804b-81927c579746',
-     'created_at': '2025-01-12T12:42:13.987Z',
+    {'id': '812125a5-1358-4eaf-8589-c50248e3d4af',
+     'created_at': '2025-01-14T03:36:38.352Z',
      'available': [{'name': 'trakwiska.com',
        'tld': 'com',
        'tags': [],
@@ -89,9 +89,9 @@ checkout URL. - `lightning` returns a lightning invoice.
 s.purchase_domain(sr['id'], "trakwiska.com")
 ```
 
-    {'payment_method': {'checkout_url': 'https://checkout.stripe.com/c/pay/cs_live_a1Hojo4GRRQJekZuVyKnO7kFizhuCAbt9kwE2tYlmL7K31mXHXHAGWHBlf#fidkdWxOYHwnPyd1blppbHNgWjA0S3VzXDdBbTFNVlJzfDVRQVQ2dVdBTnJTSH1QMGs2dHRsanJMbkY0PTxKbUtRaWowT2NwMGM8RlVBbGRqSWo3UFYwcVdqR3F9N2BtM2ZTPXc1Z3dQXGc2NTVPYVVSQkM8bycpJ2N3amhWYHdzYHcnP3F3cGApJ2lkfGpwcVF8dWAnPyd2bGtiaWBabHFgaCcpJ2BrZGdpYFVpZGZgbWppYWB3dic%2FcXdwYHgl',
+    {'payment_method': {'checkout_url': 'https://checkout.stripe.com/c/pay/cs_live_a1uu7dX1qtgk5YH3BdJewKlRPCujUfcW0KdBWr8WLwXCuctBQkWMdE2UQx#fidkdWxOYHwnPyd1blppbHNgWjA0S3VzXDdBbTFNVlJzfDVRQVQ2dVdBTnJTSH1QMGs2dHRsanJMbkY0PTxKbUtRaWowT2NwMGM8RlVBbGRqSWo3UFYwcVdqR3F9N2BtM2ZTPXc1Z3dQXGc2NTVPYVVSQkM8bycpJ2N3amhWYHdzYHcnP3F3cGApJ2lkfGpwcVF8dWAnPyd2bGtiaWBabHFgaCcpJ2BrZGdpYFVpZGZgbWppYWB3dic%2FcXdwYHgl',
       'lightning_invoice': None},
-     'expires_at': '2025-01-12T13:12:15.643Z'}
+     'expires_at': '2025-01-14T04:06:39.531Z'}
 
 You can now use the checkout URL to complete the purchase and the domain
 will be registered to your agent.
@@ -151,34 +151,43 @@ r = chat.toolloop(pr, trace_func=print)
 r
 ```
 
-```
-    Message(id='msg_01M9UEkTSLZaWqKHgDpc4n8p', content=[TextBlock(text="Certainly! I'll search for the domain 'the-favourite-game.com' and if it's available, I'll proceed with the purchase request using the credit card payment method. Let's start with the search.", type='text'), ToolUseBlock(id='toolu_01KbnEirDQbNeEp7dWhUywF1', input={'q': 'the-favourite-game.com'}, name='_search', type='tool_use')], model='claude-3-5-sonnet-20240620', role='assistant', stop_reason='tool_use', stop_sequence=None, type='message', usage=In: 2409; Out: 104; Cache create: 0; Cache read: 0; Total: 2513)
-    Message(id='msg_01UHPMNbhzwfwqMwGqzs8Qk3', content=[TextBlock(text="Great news! The domain 'the-favourite-game.com' is available for purchase. The price is 1105 cents (USD), which is equivalent to $11.05.\n\nNow that we've confirmed its availability, let's proceed with the purchase request using the credit card payment method. Before we do that, we need to make sure that the contact information is set up, as it's required for domain purchases. Let's check the current contact information:", type='text'), ToolUseBlock(id='toolu_013iudYioNWFoyfP9M545wnM', input={}, name='_get_contact_information', type='tool_use')], model='claude-3-5-sonnet-20240620', role='assistant', stop_reason='tool_use', stop_sequence=None, type='message', usage=In: 3176; Out: 137; Cache create: 0; Cache read: 0; Total: 3313)
-    Message(id='msg_01UZFbwG7sRfg6yhC3nMVHET', content=[TextBlock(text='Great, it looks like the contact information is already set up. Now we can proceed with the purchase request:', type='text'), ToolUseBlock(id='toolu_0186hdx25nWX2a6Ft3ns2stY', input={'sid': '3cdefc2a-b5bf-4ea2-a4e4-a1a9fd4a5f51', 'domain': 'the-favourite-game.com', 'payment_method': 'credit_card'}, name='_purchase_domain', type='tool_use')], model='claude-3-5-sonnet-20240620', role='assistant', stop_reason='tool_use', stop_sequence=None, type='message', usage=In: 3400; Out: 150; Cache create: 0; Cache read: 0; Total: 3550)
-    Message(id='msg_01HGMiMRxpTPDAaJMLC14SUC', content=[TextBlock(text="Excellent! The purchase request for 'the-favourite-game.com' has been successfully initiated using the credit card payment method. Here's what you need to know:\n\n1. A checkout URL has been generated for you to complete the payment.\n2. The payment link will expire on 2025-01-12T13:12:27.059Z (about 30 minutes from now).\n\nTo complete the purchase, please follow these steps:\n\n1. Click on the following checkout URL to process your payment:\n   https://checkout.stripe.com/c/pay/cs_live_a1Qbme07ZkdJqO5lyJzTTvAuCUtLqHHFaZXy3s67YbRk1DU347mQpkspWW#fidkdWxOYHwnPyd1blppbHNgWjA0S3VzXDdBbTFNVlJzfDVRQVQ2dVdBTnJTSH1QMGs2dHRsanJMbkY0PTxKbUtRaWowT2NwMGM8RlVBbGRqSWo3UFYwcVdqR3F9N2BtM2ZTPXc1Z3dQXGc2NTVPYVVSQkM8bycpJ2N3amhWYHdzYHcnP3F3cGApJ2lkfGpwcVF8dWAnPyd2bGtiaWBabHFgaCcpJ2BrZGdpYFVpZGZgbWppYWB3dic%2FcXdwYHgl\n\n2. Complete the payment process on the Stripe checkout page.\n\n3. Once the payment is processed successfully, the domain 'the-favourite-game.com' will be registered to your account.\n\nPlease make sure to complete the payment before the expiration time to secure your domain. If you have any issues with the payment process or need any further assistance, please let me know.", type='text')], model='claude-3-5-sonnet-20240620', role='assistant', stop_reason='end_turn', stop_sequence=None, type='message', usage=In: 3905; Out: 498; Cache create: 0; Cache read: 0; Total: 4403)
-```
+    Message(id='msg_014pq4tF62joNFyY7HK6a197', content=[TextBlock(text="Certainly! I'll search for the domain 'the-favourite-game.com' and if it's available, I'll proceed with the purchase request using the credit card payment method. Let's start with the search.", type='text'), ToolUseBlock(id='toolu_01P6nMob3NuohiyNYDvYjmde', input={'q': 'the-favourite-game.com'}, name='_search', type='tool_use')], model='claude-3-5-sonnet-20240620', role='assistant', stop_reason='tool_use', stop_sequence=None, type='message', usage=In: 2409; Out: 104; Cache create: 0; Cache read: 0; Total: 2513)
+    Message(id='msg_01NcViW2skMwxQFMFMKr3g5n', content=[TextBlock(text="Great news! The domain 'the-favourite-game.com' is available. The search results show that it can be purchased for 1105 cents USD, which is equivalent to $11.05.\n\nNow that we know the domain is available, let's proceed with the purchase request using the credit card payment method. However, before we can do that, we need to make sure that the contact information is set up. Let's check the current contact information:", type='text'), ToolUseBlock(id='toolu_01MJeNVC2FJa82EbyiLS5ase', input={}, name='_get_contact_information', type='tool_use')], model='claude-3-5-sonnet-20240620', role='assistant', stop_reason='tool_use', stop_sequence=None, type='message', usage=In: 2640; Out: 137; Cache create: 0; Cache read: 0; Total: 2777)
+    Message(id='msg_01L7iWs1P4xgcBDXWU2MDCPj', content=[TextBlock(text='It looks like the contact information is already set up. Now we can proceed with the purchase request:', type='text'), ToolUseBlock(id='toolu_01V8SvLHszxREU7AEXtLYHJW', input={'sid': 'a63c4bd6-d3c0-4bcd-a381-2ace4ab5dbfe', 'domain': 'the-favourite-game.com', 'payment_method': 'credit_card'}, name='_purchase_domain', type='tool_use')], model='claude-3-5-sonnet-20240620', role='assistant', stop_reason='tool_use', stop_sequence=None, type='message', usage=In: 2864; Out: 144; Cache create: 0; Cache read: 0; Total: 3008)
+    Message(id='msg_01TodMupqc2jGtgHzKnz4d1J', content=[TextBlock(text="Great! The purchase request has been processed successfully. Here's a summary of what happened:\n\n1. We searched for the domain 'the-favourite-game.com' and found it was available for $11.05.\n2. We confirmed that the contact information was already set up.\n3. We submitted a purchase request for the domain using the credit card payment method.\n\nThe system has provided a checkout URL for you to complete the payment. To finalize the purchase, you'll need to visit this URL:\n\nhttps://checkout.stripe.com/c/pay/cs_live_a1o69y0arBV5CHaLPQ4lusmVfLqGJDjAkyhNeTVT89Ri3LBbjQQjE3iuT8#fidkdWxOYHwnPyd1blppbHNgWjA0S3VzXDdBbTFNVlJzfDVRQVQ2dVdBTnJTSH1QMGs2dHRsanJMbkY0PTxKbUtRaWowT2NwMGM8RlVBbGRqSWo3UFYwcVdqR3F9N2BtM2ZTPXc1Z3dQXGc2NTVPYVVSQkM8bycpJ2N3amhWYHdzYHcnP3F3cGApJ2lkfGpwcVF8dWAnPyd2bGtiaWBabHFgaCcpJ2BrZGdpYFVpZGZgbWppYWB3dic%2FcXdwYHgl\n\nPlease note that this checkout URL will expire on 2025-01-14T04:06:49.681Z. Make sure to complete the payment before this time to secure your domain.\n\nIs there anything else you'd like me to help you with regarding this domain purchase or any other domain-related tasks?", type='text')], model='claude-3-5-sonnet-20240620', role='assistant', stop_reason='end_turn', stop_sequence=None, type='message', usage=In: 3361; Out: 477; Cache create: 0; Cache read: 0; Total: 3838)
 
+Great! The purchase request has been processed successfully. Here’s a
+summary of what happened:
 
-```
-Excellent! The purchase request for ‘the-favourite-game.com’ has been
-successfully initiated using the credit card payment method. Here’s what
-you need to know:
+1.  We searched for the domain ‘the-favourite-game.com’ and found it was
+    available for \$11.05.
+2.  We confirmed that the contact information was already set up.
+3.  We submitted a purchase request for the domain using the credit card
+    payment method.
 
-1.  A checkout URL has been generated for you to complete the payment.
-2.  The payment link will expire on 2025-01-12T13:12:27.059Z (about 30
-    minutes from now).
+The system has provided a checkout URL for you to complete the payment.
+To finalize the purchase, you’ll need to visit this URL:
 
-To complete the purchase, please follow these steps:
+https://checkout.stripe.com/c/pay/cs_live_a1o69y0arBV5CHaLPQ4lusmVfLqGJDjAkyhNeTVT89Ri3LBbjQQjE3iuT8#fidkdWxOYHwnPyd1blppbHNgWjA0S3VzXDdBbTFNVlJzfDVRQVQ2dVdBTnJTSH1QMGs2dHRsanJMbkY0PTxKbUtRaWowT2NwMGM8RlVBbGRqSWo3UFYwcVdqR3F9N2BtM2ZTPXc1Z3dQXGc2NTVPYVVSQkM8bycpJ2N3amhWYHdzYHcnP3F3cGApJ2lkfGpwcVF8dWAnPyd2bGtiaWBabHFgaCcpJ2BrZGdpYFVpZGZgbWppYWB3dic%2FcXdwYHgl
 
-1.  Click on the following checkout URL to process your payment:
-    https://checkout.stripe.com/c/pay/cs_live_a1Qbme07ZkdJqO5lyJzTTvAuCUtLqHHFaZXy3s67YbRk1DU347mQpkspWW#fidkdWxOYHwnPyd1blppbHNgWjA0S3VzXDdBbTFNVlJzfDVRQVQ2dVdBTnJTSH1QMGs2dHRsanJMbkY0PTxKbUtRaWowT2NwMGM8RlVBbGRqSWo3UFYwcVdqR3F9N2BtM2ZTPXc1Z3dQXGc2NTVPYVVSQkM8bycpJ2N3amhWYHdzYHcnP3F3cGApJ2lkfGpwcVF8dWAnPyd2bGtiaWBabHFgaCcpJ2BrZGdpYFVpZGZgbWppYWB3dic%2FcXdwYHgl
+Please note that this checkout URL will expire on
+2025-01-14T04:06:49.681Z. Make sure to complete the payment before this
+time to secure your domain.
 
-2.  Complete the payment process on the Stripe checkout page.
+Is there anything else you’d like me to help you with regarding this
+domain purchase or any other domain-related tasks?
 
-3.  Once the payment is processed successfully, the domain
-    ‘the-favourite-game.com’ will be registered to your account.
+<details>
 
-Please make sure to complete the payment before the expiration time to
-secure your domain. If you have any issues with the payment process or
-need any further assistance, please let me know.
-```
+- id: `msg_01TodMupqc2jGtgHzKnz4d1J`
+- content:
+  `[{'text': "Great! The purchase request has been processed successfully. Here's a summary of what happened:\n\n1. We searched for the domain 'the-favourite-game.com' and found it was available for $11.05.\n2. We confirmed that the contact information was already set up.\n3. We submitted a purchase request for the domain using the credit card payment method.\n\nThe system has provided a checkout URL for you to complete the payment. To finalize the purchase, you'll need to visit this URL:\n\nhttps://checkout.stripe.com/c/pay/cs_live_a1o69y0arBV5CHaLPQ4lusmVfLqGJDjAkyhNeTVT89Ri3LBbjQQjE3iuT8#fidkdWxOYHwnPyd1blppbHNgWjA0S3VzXDdBbTFNVlJzfDVRQVQ2dVdBTnJTSH1QMGs2dHRsanJMbkY0PTxKbUtRaWowT2NwMGM8RlVBbGRqSWo3UFYwcVdqR3F9N2BtM2ZTPXc1Z3dQXGc2NTVPYVVSQkM8bycpJ2N3amhWYHdzYHcnP3F3cGApJ2lkfGpwcVF8dWAnPyd2bGtiaWBabHFgaCcpJ2BrZGdpYFVpZGZgbWppYWB3dic%2FcXdwYHgl\n\nPlease note that this checkout URL will expire on 2025-01-14T04:06:49.681Z. Make sure to complete the payment before this time to secure your domain.\n\nIs there anything else you'd like me to help you with regarding this domain purchase or any other domain-related tasks?", 'type': 'text'}]`
+- model: `claude-3-5-sonnet-20240620`
+- role: `assistant`
+- stop_reason: `end_turn`
+- stop_sequence: `None`
+- type: `message`
+- usage:
+  `{'cache_creation_input_tokens': 0, 'cache_read_input_tokens': 0, 'input_tokens': 3361, 'output_tokens': 477}`
+
+</details>
