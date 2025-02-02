@@ -57,14 +57,14 @@ Invalid queries:
 
 
 @mcp.tool()
-async def _purchase_domain(sid: str, domain: str, payment_method: str) -> str:
+async def _request_payment_details(sid: str, domain: str, payment_method: str) -> str:
     """Purchase a domain. This method won't charge your account, it will return the payment information needed to complete the purchase.
 Contact information must be set before calling this method.
 
 sid: Search ID from a previous search request
 domain: Domain name to purchase
 payment_method: Payment method to use {'credit_card', 'lightning'}"""
-    return str(s._purchase_domain(sid, domain, payment_method))
+    return str(s._request_payment_details(sid, domain, payment_method))
 
 
 @mcp.tool()

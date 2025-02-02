@@ -267,7 +267,7 @@ def get_payment_details(self: Sherlock,
 
 # %% ../nbs/00_core.ipynb 48
 @patch
-def purchase_domain(self: Sherlock,
+def request_payment_details(self: Sherlock,
                     sid: str, # search id
                     domain: str, # domain
                     payment_method: str = 'credit_card', # payment method {'credit_card', 'lightning'}
@@ -280,7 +280,7 @@ def purchase_domain(self: Sherlock,
 
 
 @patch
-def _purchase_domain(self: Sherlock,
+def _request_payment_details(self: Sherlock,
                     sid: str, # search id
                     domain: str, # domain
                     payment_method: str = 'credit_card'): # payment method {'credit_card', 'lightning'}
@@ -294,7 +294,7 @@ def _purchase_domain(self: Sherlock,
     """
     contact = Contact(**self.get_contact_information())
     if not contact or not contact.is_valid(): raise ValueError("Contact information is required")
-    return self.purchase_domain(sid, domain, payment_method, contact)
+    return self.request_payment_details(sid, domain, payment_method, contact)
 
 
 # %% ../nbs/00_core.ipynb 50
@@ -458,7 +458,7 @@ def as_tools(self:Sherlock):
         self._set_contact_information,
         self._get_contact_information,
         self._search, 
-        self._purchase_domain,
+        self._request_payment_details,
         self._domains,
         self._dns_records,
         self._create_dns_record,
@@ -479,7 +479,7 @@ def as_cli(self:Sherlock):
         self.set_contact_information,
         self.get_contact_information,
         self.search,
-        self.purchase_domain,
+        self.request_payment_details,
         self.domains,
         self.dns_records,
         self.create_dns,
