@@ -191,7 +191,7 @@ def get_contact_information(self: Sherlock):
     return _handle_response(r)
    
 
-# %% ../nbs/00_core.ipynb 31
+# %% ../nbs/00_core.ipynb 32
 @patch
 def _set_contact_information(self: Sherlock,
                       first_name: str = '',
@@ -227,17 +227,17 @@ def _get_contact_information(self: Sherlock):
     return self.get_contact_information()
 
 
-# %% ../nbs/00_core.ipynb 37
+# %% ../nbs/00_core.ipynb 38
 get_offers_endpoint = f"{API_URL}/api/v0/domains/purchase"
 
-# %% ../nbs/00_core.ipynb 38
+# %% ../nbs/00_core.ipynb 39
 def _get_offers_payload(domain: str, # domain
                    contact: Contact, # contact
                    sid: str): # search id
     "Make a purchase payload"
     return {"domain": domain, "contact_information": contact.asdict(), "search_id": sid}
 
-# %% ../nbs/00_core.ipynb 41
+# %% ../nbs/00_core.ipynb 42
 @patch
 def get_purchase_offers(self: Sherlock,
                       sid: str, # search id
@@ -248,7 +248,37 @@ def get_purchase_offers(self: Sherlock,
     r = httpx.post(get_offers_endpoint, json=_get_offers_payload(domain, c, sid), headers=_mk_headers(self.atok))
     return _handle_response(r)
 
-# %% ../nbs/00_core.ipynb 46
+
+@patch
+def _get_purchase_offers(self: Sherlock,
+                      sid: str, # search id
+                      domain: str): # domain
+    """Request available payment options for a domain.
+
+    This method retrieves the L402 offers available for purchasing a specified domain. 
+    It requires a valid search ID and domain name. This method requires the contact information to be set.
+
+    The response includes:
+    - `version`: The version of the L402 protocol being used.
+    - `payment_request_url`: A URL to request payment details.
+    - `payment_context_token`: A token used to maintain the payment context.
+    - `offers`: A list of available offers, each containing:
+        - `id`: Unique identifier for the offer.
+        - `title`: The domain name being offered.
+        - `description`: A brief description of the offer, including the price.
+        - `type`: The type of offer, e.g., 'one-time'.
+        - `amount`: The cost of the domain in USD cents.
+        - `currency`: The currency of the transaction, typically 'USD'.
+        - `payment_methods`: Supported payment methods, such as 'credit_card' and 'lightning'.
+"""
+    contact = Contact(**self.get_contact_information())
+    if not contact or not contact.is_valid(): raise ValueError("Contact information is required")
+    return self.get_purchase_offers(sid, domain, contact)
+
+
+
+
+# %% ../nbs/00_core.ipynb 47
 @patch
 def get_payment_details(self: Sherlock,
                     prurl: str, # payment request url
@@ -265,7 +295,7 @@ def get_payment_details(self: Sherlock,
     return _handle_response(r)
 
 
-# %% ../nbs/00_core.ipynb 48
+# %% ../nbs/00_core.ipynb 49
 @patch
 def request_payment_details(self: Sherlock,
                     sid: str, # search id
@@ -297,14 +327,14 @@ def _request_payment_details(self: Sherlock,
     return self.request_payment_details(sid, domain, payment_method, contact)
 
 
-# %% ../nbs/00_core.ipynb 50
+# %% ../nbs/00_core.ipynb 51
 @patch
 def domains(self:Sherlock):
     "List of domains owned by the authenticated user"
     r = httpx.get(f"{API_URL}/api/v0/domains/domains", headers=_mk_headers(self.atok))
     return _handle_response(r)
 
-# %% ../nbs/00_core.ipynb 51
+# %% ../nbs/00_core.ipynb 52
 @patch
 def _domains(self:Sherlock):
     """
@@ -324,7 +354,7 @@ def _domains(self:Sherlock):
     return self.domains()
 
 
-# %% ../nbs/00_core.ipynb 53
+# %% ../nbs/00_core.ipynb 54
 @patch
 def dns_records(self:Sherlock,
                 domain_id: str): # domain id
@@ -333,7 +363,7 @@ def dns_records(self:Sherlock,
                  headers=_mk_headers(self.atok))
     return _handle_response(r)
 
-# %% ../nbs/00_core.ipynb 54
+# %% ../nbs/00_core.ipynb 55
 @patch
 def _dns_records(self:Sherlock,
                 domain_id: str):
@@ -351,7 +381,7 @@ def _dns_records(self:Sherlock,
     """
     return self.dns_records(domain_id)
 
-# %% ../nbs/00_core.ipynb 56
+# %% ../nbs/00_core.ipynb 57
 @patch
 def create_dns(self:Sherlock,
                domain_id: str, # domain id
@@ -365,7 +395,7 @@ def create_dns(self:Sherlock,
                   headers=_mk_headers(self.atok), json=data)
     return _handle_response(r)
 
-# %% ../nbs/00_core.ipynb 58
+# %% ../nbs/00_core.ipynb 59
 @patch
 def _create_dns_record(self:Sherlock,
                 domain_id: str, # domain id
@@ -385,7 +415,7 @@ def _create_dns_record(self:Sherlock,
     return self.create_dns(domain_id, type, name, value, ttl)
 
 
-# %% ../nbs/00_core.ipynb 60
+# %% ../nbs/00_core.ipynb 61
 @patch
 def update_dns(self:Sherlock,
                domain_id: str, # domain id
@@ -401,7 +431,7 @@ def update_dns(self:Sherlock,
                    headers=_mk_headers(self.atok), json=data)
     return _handle_response(r)
 
-# %% ../nbs/00_core.ipynb 62
+# %% ../nbs/00_core.ipynb 63
 @patch
 def _update_dns_record(self:Sherlock,
                 domain_id: str, # domain id
@@ -425,7 +455,7 @@ def _update_dns_record(self:Sherlock,
     return self.update_dns(domain_id, record_id, type, name, value, ttl)
 
 
-# %% ../nbs/00_core.ipynb 63
+# %% ../nbs/00_core.ipynb 64
 @patch
 def delete_dns(self:Sherlock,
                domain_id: str, # domain id
@@ -435,7 +465,7 @@ def delete_dns(self:Sherlock,
                     headers=_mk_headers(self.atok))
     return _handle_response(r)
 
-# %% ../nbs/00_core.ipynb 65
+# %% ../nbs/00_core.ipynb 66
 @patch
 def _delete_dns_record(self:Sherlock,
                 domain_id: str, # domain id
@@ -449,7 +479,7 @@ def _delete_dns_record(self:Sherlock,
     return self.delete_dns(domain_id, record_id)
 
 
-# %% ../nbs/00_core.ipynb 67
+# %% ../nbs/00_core.ipynb 68
 @patch
 def as_tools(self:Sherlock):
     "Return the Sherlock class as a list of tools ready for agents to use"
@@ -466,11 +496,11 @@ def as_tools(self:Sherlock):
         self._delete_dns_record,
     ])
 
-# %% ../nbs/00_core.ipynb 70
+# %% ../nbs/00_core.ipynb 71
 from inspect import signature, Parameter
 import argparse
 
-# %% ../nbs/00_core.ipynb 71
+# %% ../nbs/00_core.ipynb 72
 @patch
 def as_cli(self:Sherlock):
     "Return the Sherlock class as a list of tools ready for agents to use"
@@ -487,7 +517,7 @@ def as_cli(self:Sherlock):
         self.delete_dns,
     ])
 
-# %% ../nbs/00_core.ipynb 73
+# %% ../nbs/00_core.ipynb 74
 def main():
     "CLI interface for Sherlock"
     parser = argparse.ArgumentParser()
