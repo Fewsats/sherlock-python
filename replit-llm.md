@@ -18,7 +18,7 @@ import json
 s = Sherlock(os.getenv('SHERLOCK_PRIVATE_KEY'))
 
 r = s._search("example.com")
-d = next((x for x in r['available'] if x['name'] == "notahuman.me"), None)
+d = next((x for x in r['available'] if x['name'] == "example.com"), None)
 
 contact_info = json.loads(os.getenv('CONTACT_INFO'))
 s._set_contact_information(first_name=contact_info['first_name'], last_name=contact_info['last_name'], email=contact_info['email'], address=contact_info['address'], city=contact_info['city'], state=contact_info['state'], postal_code=contact_info['postal_code'], country=contact_info['country'])
