@@ -356,6 +356,30 @@ def _domains(self:Sherlock):
 
 # %% ../nbs/00_core.ipynb 54
 @patch
+def update_nameservers(self:Sherlock,
+                       domain_id: str, # domain id
+                       nameservers: list[str]): # nameservers
+    "Update the nameserver list for a domain"
+    r = httpx.patch(f"{API_URL}/api/v0/domains/{domain_id}/nameservers", json={"nameservers": nameservers}, headers=_mk_headers(self.atok))
+    return _handle_response(r)
+
+# %% ../nbs/00_core.ipynb 55
+@patch
+def _update_nameservers(self:Sherlock,
+                domain_id: str,
+                nameservers: list[str]):
+    """
+    Update the nameserver list for a domain.
+
+    domain_id: Domain UUID (e.g: 'd1234567-89ab-cdef-0123-456789abcdef')
+    nameservers: List of nameserver IP addresses (e.g: ['ns1.example.com', 'ns2.example.com'])
+    
+    NOTE: the list cannot be empty, all nameservers will be overwritten by the new list.
+    """
+    return self.update_nameservers(domain_id, nameservers)
+
+# %% ../nbs/00_core.ipynb 57
+@patch
 def dns_records(self:Sherlock,
                 domain_id: str): # domain id
     "Get DNS records for a domain."
@@ -363,7 +387,7 @@ def dns_records(self:Sherlock,
                  headers=_mk_headers(self.atok))
     return _handle_response(r)
 
-# %% ../nbs/00_core.ipynb 55
+# %% ../nbs/00_core.ipynb 58
 @patch
 def _dns_records(self:Sherlock,
                 domain_id: str):
@@ -381,7 +405,7 @@ def _dns_records(self:Sherlock,
     """
     return self.dns_records(domain_id)
 
-# %% ../nbs/00_core.ipynb 57
+# %% ../nbs/00_core.ipynb 60
 @patch
 def create_dns(self:Sherlock,
                domain_id: str, # domain id
@@ -395,7 +419,7 @@ def create_dns(self:Sherlock,
                   headers=_mk_headers(self.atok), json=data)
     return _handle_response(r)
 
-# %% ../nbs/00_core.ipynb 59
+# %% ../nbs/00_core.ipynb 62
 @patch
 def _create_dns_record(self:Sherlock,
                 domain_id: str, # domain id
@@ -415,7 +439,7 @@ def _create_dns_record(self:Sherlock,
     return self.create_dns(domain_id, type, name, value, ttl)
 
 
-# %% ../nbs/00_core.ipynb 61
+# %% ../nbs/00_core.ipynb 64
 @patch
 def update_dns(self:Sherlock,
                domain_id: str, # domain id
@@ -431,7 +455,7 @@ def update_dns(self:Sherlock,
                    headers=_mk_headers(self.atok), json=data)
     return _handle_response(r)
 
-# %% ../nbs/00_core.ipynb 63
+# %% ../nbs/00_core.ipynb 66
 @patch
 def _update_dns_record(self:Sherlock,
                 domain_id: str, # domain id
@@ -455,7 +479,7 @@ def _update_dns_record(self:Sherlock,
     return self.update_dns(domain_id, record_id, type, name, value, ttl)
 
 
-# %% ../nbs/00_core.ipynb 64
+# %% ../nbs/00_core.ipynb 67
 @patch
 def delete_dns(self:Sherlock,
                domain_id: str, # domain id
@@ -465,7 +489,7 @@ def delete_dns(self:Sherlock,
                     headers=_mk_headers(self.atok))
     return _handle_response(r)
 
-# %% ../nbs/00_core.ipynb 66
+# %% ../nbs/00_core.ipynb 69
 @patch
 def _delete_dns_record(self:Sherlock,
                 domain_id: str, # domain id
@@ -479,7 +503,7 @@ def _delete_dns_record(self:Sherlock,
     return self.delete_dns(domain_id, record_id)
 
 
-# %% ../nbs/00_core.ipynb 68
+# %% ../nbs/00_core.ipynb 71
 @patch
 def as_tools(self:Sherlock):
     "Return the Sherlock class as a list of tools ready for agents to use"
@@ -490,17 +514,18 @@ def as_tools(self:Sherlock):
         self._search, 
         self._request_payment_details,
         self._domains,
+        self._update_nameservers,
         self._dns_records,
         self._create_dns_record,
         self._update_dns_record,
         self._delete_dns_record,
     ])
 
-# %% ../nbs/00_core.ipynb 71
+# %% ../nbs/00_core.ipynb 74
 from inspect import signature, Parameter
 import argparse
 
-# %% ../nbs/00_core.ipynb 72
+# %% ../nbs/00_core.ipynb 75
 @patch
 def as_cli(self:Sherlock):
     "Return the Sherlock class as a list of tools ready for agents to use"
@@ -511,13 +536,14 @@ def as_cli(self:Sherlock):
         self.search,
         self.request_payment_details,
         self.domains,
+        self.update_nameservers,
         self.dns_records,
         self.create_dns,
         self.update_dns,
         self.delete_dns,
     ])
 
-# %% ../nbs/00_core.ipynb 74
+# %% ../nbs/00_core.ipynb 77
 def main():
     "CLI interface for Sherlock"
     parser = argparse.ArgumentParser()
